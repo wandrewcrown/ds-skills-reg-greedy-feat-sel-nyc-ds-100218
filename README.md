@@ -209,10 +209,6 @@ df.head()
 pd.plotting.scatter_matrix(df, figsize=(15,15));
 ```
 
-
-![png](index_files/index_5_0.png)
-
-
 # Feature selection by adding one attribute at a time
 Iterate through each feature and calculate the r^2 coefficient for at least 3 different train test split samples. Store these values in a dictionary so that you have
 model_scores = {col_name : (avg_r^2_train, avg_r^2_test)} for each column. Then create a dataframe of these values and sort it by the average test score. Preview the top 5 predictive features.
@@ -261,7 +257,7 @@ model_scores = model_scores.sort_values(by='Test_r2', ascending=False)
 model_scores.head()
 ```
 
-    (0.6240260252691278, 0.6269307057197837)
+    (0.6233504337091215, 0.6347596402211834)
 
 
 
@@ -292,28 +288,28 @@ model_scores.head()
   <tbody>
     <tr>
       <th>OverallQual</th>
-      <td>0.624026</td>
-      <td>0.626931</td>
-    </tr>
-    <tr>
-      <th>GrLivArea</th>
-      <td>0.490174</td>
-      <td>0.536724</td>
-    </tr>
-    <tr>
-      <th>GarageCars</th>
-      <td>0.395985</td>
-      <td>0.459913</td>
-    </tr>
-    <tr>
-      <th>GarageArea</th>
-      <td>0.378454</td>
-      <td>0.422551</td>
+      <td>0.623350</td>
+      <td>0.634760</td>
     </tr>
     <tr>
       <th>TotalBsmtSF</th>
-      <td>0.369839</td>
-      <td>0.393900</td>
+      <td>0.360389</td>
+      <td>0.423886</td>
+    </tr>
+    <tr>
+      <th>GrLivArea</th>
+      <td>0.526070</td>
+      <td>0.412337</td>
+    </tr>
+    <tr>
+      <th>GarageArea</th>
+      <td>0.381030</td>
+      <td>0.410302</td>
+    </tr>
+    <tr>
+      <th>GarageCars</th>
+      <td>0.416398</td>
+      <td>0.386165</td>
     </tr>
   </tbody>
 </table>
@@ -335,6 +331,100 @@ model_scores.head()
 
 # Find the second most impactful feature in addition to the first.
 Iterate back through all of the column features (except Make note of the most predictive feature from above. Repeat the process to find the second most useful feature in conjunction with the most important feature. **Be sure to include 2 variables in each of your models; one will always be the most predictive from the previous exercise and the second will be some other column.** 
+
+
+```python
+# Your code here
+ols = LinearRegression()
+model2_scores = {}
+cur_feats = ['OverallQual']
+for iteration, col in enumerate(X.columns):
+    try:
+        train_r2 = []
+        test_r2 = []
+        feats = cur_feats + [col]
+        for i in range(3):
+            X_train, X_test, y_train, y_test = train_test_split(X, y)
+            ols.fit(X_train[feats], y_train)
+            train_r2.append(ols.score(X_train[feats], y_train))
+            test_r2.append(ols.score(X_test[feats], y_test))
+        model2_scores[col] = (np.mean(train_r2), np.mean(test_r2))
+    except Exception as e:
+        if iteration < 5:
+            print(e)
+        continue
+#         print("Couldn't perform regression using {}, probably not a numeric feature.".format(col))
+#         print("Top feature attributes:\n", df[col].value_counts(normalize=True)[:5])
+model2_scores = pd.DataFrame.from_dict(model2_scores, orient='index')
+model2_scores.columns = ['Train_r2', 'Test_r2']
+model2_scores = model2_scores.sort_values(by='Test_r2', ascending=False)
+model2_scores.head()
+```
+
+    could not convert string to float: 'RL'
+    Input contains NaN, infinity or a value too large for dtype('float64').
+
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Train_r2</th>
+      <th>Test_r2</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>GrLivArea</th>
+      <td>0.716578</td>
+      <td>0.694518</td>
+    </tr>
+    <tr>
+      <th>TotRmsAbvGrd</th>
+      <td>0.666643</td>
+      <td>0.691269</td>
+    </tr>
+    <tr>
+      <th>1stFlrSF</th>
+      <td>0.693233</td>
+      <td>0.688560</td>
+    </tr>
+    <tr>
+      <th>GarageArea</th>
+      <td>0.667524</td>
+      <td>0.686759</td>
+    </tr>
+    <tr>
+      <th>GarageCars</th>
+      <td>0.666893</td>
+      <td>0.670151</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+# Notes: Messy Scratchpad
+
+Here we demonstrate how you might start investigating and pulling apart some of the more complex nested objects in the code snippet above. This is how you yourself might play around with the code as you write and build a longer block like above, or try to decipher a longer block of code.
 
 
 ```python
@@ -398,108 +488,41 @@ model2_scores.head()
   <thead>
     <tr style="text-align: right;">
       <th></th>
-    </tr>
-  </thead>
-  <tbody>
-  </tbody>
-</table>
-</div>
-
-
-
-
-```python
-# Your code here
-ols = LinearRegression()
-model2_scores = {}
-cur_feats = ['OverallQual']
-for iteration, col in enumerate(X.columns):
-    try:
-        train_r2 = []
-        test_r2 = []
-        feats = cur_feats + [col]
-        for i in range(3):
-            X_train, X_test, y_train, y_test = train_test_split(X, y)
-            ols.fit(X_train[feats], y_train)
-            train_r2.append(ols.score(X_train[feats], y_train))
-            test_r2.append(ols.score(X_test[feats], y_test))
-        model2_scores[col] = (np.mean(train_r2), np.mean(test_r2))
-    except Exception as e:
-        if iteration < 5:
-            print(e)
-        continue
-#         print("Couldn't perform regression using {}, probably not a numeric feature.".format(col))
-#         print("Top feature attributes:\n", df[col].value_counts(normalize=True)[:5])
-model2_scores = pd.DataFrame.from_dict(model2_scores, orient='index')
-model2_scores.columns = ['Train_r2', 'Test_r2']
-model2_scores = model2_scores.sort_values(by='Test_r2', ascending=False)
-model2_scores.head()
-```
-
-    could not convert string to float: 'RL'
-    Input contains NaN, infinity or a value too large for dtype('float64').
-
-
-
-
-
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
       <th>Train_r2</th>
       <th>Test_r2</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <th>1stFlrSF</th>
-      <td>0.686983</td>
-      <td>0.710010</td>
-    </tr>
-    <tr>
       <th>GrLivArea</th>
-      <td>0.715080</td>
-      <td>0.706236</td>
-    </tr>
-    <tr>
-      <th>GarageArea</th>
-      <td>0.665488</td>
-      <td>0.692546</td>
-    </tr>
-    <tr>
-      <th>LotArea</th>
-      <td>0.648639</td>
-      <td>0.687010</td>
+      <td>0.716578</td>
+      <td>0.694518</td>
     </tr>
     <tr>
       <th>TotRmsAbvGrd</th>
-      <td>0.669593</td>
-      <td>0.680524</td>
+      <td>0.666643</td>
+      <td>0.691269</td>
+    </tr>
+    <tr>
+      <th>1stFlrSF</th>
+      <td>0.693233</td>
+      <td>0.688560</td>
+    </tr>
+    <tr>
+      <th>GarageArea</th>
+      <td>0.667524</td>
+      <td>0.686759</td>
+    </tr>
+    <tr>
+      <th>GarageCars</th>
+      <td>0.666893</td>
+      <td>0.670151</td>
     </tr>
   </tbody>
 </table>
 </div>
 
 
-
-# Continue adding features, one at a time and graph train / test accuracy against number of features.
-#### Hint: First formalize the previous question as a function. 
-The graph should include the number of model feaures on the x axis and the  r^2 values for the train and test splits on the y-axis.
 
 
 ```python
@@ -521,8 +544,8 @@ model2_scores.iloc[0]
 
 
 
-    Train_r2    0.706403
-    Test_r2     0.721683
+    Train_r2    0.716578
+    Test_r2     0.694518
     Name: GrLivArea, dtype: float64
 
 
@@ -547,7 +570,7 @@ model2_scores.iloc[0]['Train_r2']
 
 
 
-    0.7064032126207153
+    0.716577872870524
 
 
 
@@ -559,9 +582,13 @@ tuple(model2_scores.iloc[0])
 
 
 
-    (0.7064032126207153, 0.7216830264190167)
+    (0.716577872870524, 0.6945179914955402)
 
 
+
+# Continue adding features, one at a time and graph train / test accuracy against number of features.
+#### Hint: First formalize the previous question as a function. 
+The graph should include the number of model feaures on the x axis and the  r^2 values for the train and test splits on the y-axis.
 
 
 ```python
@@ -605,7 +632,7 @@ def add_feature(cur_feats, X, y):
 
 
 
-    [2, 0.7064032126207153, 0.7216830264190167]
+    [2, 0.716577872870524, 0.6945179914955402]
 
 
 
@@ -622,176 +649,176 @@ for i in range(3,60):
 ```
 
     Current Number of Features: 3
-    Current Train r^2: 0.6968445208423808
-    Current Test r^2: 0.7650604399630088
+    Current Train r^2: 0.736945800689269
+    Current Test r^2: 0.7728662620677277
     Current Number of Features: 4
-    Current Train r^2: 0.7030468817540322
-    Current Test r^2: 0.7517379260118764
+    Current Train r^2: 0.7296746311388443
+    Current Test r^2: 0.802890288384288
     Current Number of Features: 5
-    Current Train r^2: 0.7334012930270238
-    Current Test r^2: 0.7681645198914292
+    Current Train r^2: 0.7383860032649384
+    Current Test r^2: 0.8034660818091846
     Current Number of Features: 6
-    Current Train r^2: 0.7403515014984955
-    Current Test r^2: 0.8047542194808877
+    Current Train r^2: 0.7396986061252764
+    Current Test r^2: 0.8094431211187771
     Current Number of Features: 7
-    Current Train r^2: 0.7423548603725126
-    Current Test r^2: 0.8009067419889356
+    Current Train r^2: 0.7377551375186068
+    Current Test r^2: 0.8087931208141188
     Current Number of Features: 8
-    Current Train r^2: 0.7513342158159259
-    Current Test r^2: 0.8138980777985858
+    Current Train r^2: 0.7386686932322865
+    Current Test r^2: 0.8040328471035711
     Current Number of Features: 9
-    Current Train r^2: 0.7499770577312632
-    Current Test r^2: 0.8168249677791343
+    Current Train r^2: 0.7458856342559733
+    Current Test r^2: 0.8059574499793091
     Current Number of Features: 10
-    Current Train r^2: 0.7659304552200471
-    Current Test r^2: 0.805734637893262
+    Current Train r^2: 0.7581707397588575
+    Current Test r^2: 0.8168693231518106
     Current Number of Features: 11
-    Current Train r^2: 0.7602255155998962
-    Current Test r^2: 0.8175021044561358
+    Current Train r^2: 0.7708226633165579
+    Current Test r^2: 0.8144927677429649
     Current Number of Features: 12
-    Current Train r^2: 0.7605270846004747
-    Current Test r^2: 0.841324891114104
+    Current Train r^2: 0.7691200230769318
+    Current Test r^2: 0.830764937977928
     Current Number of Features: 13
-    Current Train r^2: 0.7663920183590444
-    Current Test r^2: 0.8269717424420499
+    Current Train r^2: 0.7700479706180969
+    Current Test r^2: 0.8312516389497723
     Current Number of Features: 14
-    Current Train r^2: 0.7638249704276056
-    Current Test r^2: 0.8333281307660597
+    Current Train r^2: 0.7704719323484248
+    Current Test r^2: 0.8278955705764073
     Current Number of Features: 15
-    Current Train r^2: 0.7720177274910304
-    Current Test r^2: 0.8232933621144563
+    Current Train r^2: 0.7718908618944722
+    Current Test r^2: 0.8309125848528979
     Current Number of Features: 16
-    Current Train r^2: 0.7674438038496006
-    Current Test r^2: 0.8336986445462097
+    Current Train r^2: 0.7749931399178888
+    Current Test r^2: 0.8282015925855943
     Current Number of Features: 17
-    Current Train r^2: 0.7734066118099392
-    Current Test r^2: 0.8167641066566769
+    Current Train r^2: 0.7705639021277929
+    Current Test r^2: 0.8393206769415068
     Current Number of Features: 18
-    Current Train r^2: 0.7705979103246677
-    Current Test r^2: 0.8265517315828816
+    Current Train r^2: 0.7767410524085315
+    Current Test r^2: 0.818620003295239
     Current Number of Features: 19
-    Current Train r^2: 0.7696809876854612
-    Current Test r^2: 0.8291954498349714
+    Current Train r^2: 0.7689319481456165
+    Current Test r^2: 0.8331016008374942
     Current Number of Features: 20
-    Current Train r^2: 0.7728523682313299
-    Current Test r^2: 0.8240548044720803
+    Current Train r^2: 0.7709823908552352
+    Current Test r^2: 0.8265308768097502
     Current Number of Features: 21
-    Current Train r^2: 0.772801720880924
-    Current Test r^2: 0.8217442023940725
+    Current Train r^2: 0.7735306863023284
+    Current Test r^2: 0.8238957666421808
     Current Number of Features: 22
-    Current Train r^2: 0.7746468193857415
-    Current Test r^2: 0.8260539362012396
+    Current Train r^2: 0.7739250007555224
+    Current Test r^2: 0.8273326161401132
     Current Number of Features: 23
-    Current Train r^2: 0.7778798705088108
-    Current Test r^2: 0.8219659534690335
+    Current Train r^2: 0.771741222802767
+    Current Test r^2: 0.8297526384702844
     Current Number of Features: 24
-    Current Train r^2: 0.7757361495683447
-    Current Test r^2: 0.8411976906124302
+    Current Train r^2: 0.7716511943298346
+    Current Test r^2: 0.8474950918799588
     Current Number of Features: 25
-    Current Train r^2: 0.7794893767224789
-    Current Test r^2: 0.8228310183939902
+    Current Train r^2: 0.7773789383160318
+    Current Test r^2: 0.8320102560401824
     Current Number of Features: 26
-    Current Train r^2: 0.7808568546295683
-    Current Test r^2: 0.8427004397903098
+    Current Train r^2: 0.7750163022887047
+    Current Test r^2: 0.841799294909699
     Current Number of Features: 27
-    Current Train r^2: 0.789214849494889
-    Current Test r^2: 0.8159425872006119
+    Current Train r^2: 0.775114192146848
+    Current Test r^2: 0.8343253746969322
     Current Number of Features: 28
-    Current Train r^2: 0.782670886493861
-    Current Test r^2: 0.8339558942200768
+    Current Train r^2: 0.7768976485000626
+    Current Test r^2: 0.8504152594188347
     Current Number of Features: 29
-    Current Train r^2: 0.7900162814498798
-    Current Test r^2: 0.8160533314740097
+    Current Train r^2: 0.7861627688852412
+    Current Test r^2: 0.8357862268374875
     Current Number of Features: 30
-    Current Train r^2: 0.7855643590408438
-    Current Test r^2: 0.819215156301838
+    Current Train r^2: 0.782457538245291
+    Current Test r^2: 0.8451989352169312
     Current Number of Features: 31
-    Current Train r^2: 0.7822226432023833
-    Current Test r^2: 0.8370715898175382
+    Current Train r^2: 0.7869928699008849
+    Current Test r^2: 0.8338912868096134
     Current Number of Features: 32
-    Current Train r^2: 0.7825976645138369
-    Current Test r^2: 0.8369915412994017
+    Current Train r^2: 0.7838152320952588
+    Current Test r^2: 0.8478731260194659
     Current Number of Features: 33
-    Current Train r^2: 0.781818227029284
-    Current Test r^2: 0.8449026474446463
+    Current Train r^2: 0.7880772408853414
+    Current Test r^2: 0.8386617014517389
     Current Number of Features: 34
-    Current Train r^2: 0.7869335266690252
-    Current Test r^2: 0.8296266467011648
+    Current Train r^2: 0.7870819255253944
+    Current Test r^2: 0.8342282701017073
     Current Number of Features: 35
-    Current Train r^2: 0.7817749304648515
-    Current Test r^2: 0.8398521152579915
+    Current Train r^2: 0.7878469269573078
+    Current Test r^2: 0.8388011825306204
     Current Number of Features: 36
-    Current Train r^2: 0.7843208957217422
-    Current Test r^2: 0.841408886381173
+    Current Train r^2: 0.7854039740497433
+    Current Test r^2: 0.8352539222593892
     Current Number of Features: 37
-    Current Train r^2: 0.7865086592315681
-    Current Test r^2: 0.8309914010232302
+    Current Train r^2: 0.7880030841757476
+    Current Test r^2: 0.8423093903912201
     Current Number of Features: 38
-    Current Train r^2: 0.7794816379934226
-    Current Test r^2: 0.8358687781417048
+    Current Train r^2: 0.7936112132493381
+    Current Test r^2: 0.8305120022455933
     Current Number of Features: 39
-    Current Train r^2: 0.790405143551706
-    Current Test r^2: 0.8263705902879076
+    Current Train r^2: 0.787960106822478
+    Current Test r^2: 0.8447149253506314
     Current Number of Features: 40
-    Current Train r^2: 0.7878020063047719
-    Current Test r^2: 0.8288264305373305
+    Current Train r^2: 0.7860895913704052
+    Current Test r^2: 0.836891025794737
     Current Number of Features: 41
-    Current Train r^2: 0.7897877981166713
-    Current Test r^2: 0.8400076129417123
+    Current Train r^2: 0.791059495306007
+    Current Test r^2: 0.8297187560226474
     Current Number of Features: 42
-    Current Train r^2: 0.7879128225705115
-    Current Test r^2: 0.8369626482802678
+    Current Train r^2: 0.7942300129537907
+    Current Test r^2: 0.8216133218033118
     Current Number of Features: 43
-    Current Train r^2: 0.7886055286681519
-    Current Test r^2: 0.8438918422595538
+    Current Train r^2: 0.7903334259963336
+    Current Test r^2: 0.8298484071856261
     Current Number of Features: 44
-    Current Train r^2: 0.7893954736492558
-    Current Test r^2: 0.8348452239796057
+    Current Train r^2: 0.7902664801295124
+    Current Test r^2: 0.8448614471548751
     Current Number of Features: 45
-    Current Train r^2: 0.790532932733954
-    Current Test r^2: 0.840940683869022
+    Current Train r^2: 0.7911587507357895
+    Current Test r^2: 0.8447275073820985
     Current Number of Features: 46
-    Current Train r^2: 0.7861613665597508
-    Current Test r^2: 0.8402752486218668
+    Current Train r^2: 0.7972704328403021
+    Current Test r^2: 0.8239340187959242
     Current Number of Features: 47
-    Current Train r^2: 0.7942932610590825
-    Current Test r^2: 0.8191853305834993
+    Current Train r^2: 0.7926590550800032
+    Current Test r^2: 0.8314904780704717
     Current Number of Features: 48
-    Current Train r^2: 0.7909791570876871
-    Current Test r^2: 0.8234048859469634
+    Current Train r^2: 0.7909452776871607
+    Current Test r^2: 0.8429911206502506
     Current Number of Features: 49
-    Current Train r^2: 0.7924055213610305
-    Current Test r^2: 0.8348764089215499
+    Current Train r^2: 0.7921015225396886
+    Current Test r^2: 0.8404218990976747
     Current Number of Features: 50
-    Current Train r^2: 0.7848607335655756
-    Current Test r^2: 0.8400619719369243
+    Current Train r^2: 0.7943261379235405
+    Current Test r^2: 0.8383019157267039
     Current Number of Features: 51
-    Current Train r^2: 0.79025268330758
-    Current Test r^2: 0.8321360798664874
+    Current Train r^2: 0.7937725901325554
+    Current Test r^2: 0.8344697224807781
     Current Number of Features: 52
-    Current Train r^2: 0.7904447826667788
-    Current Test r^2: 0.843990757580487
+    Current Train r^2: 0.7933310284871412
+    Current Test r^2: 0.8328674883099104
     Current Number of Features: 53
-    Current Train r^2: 0.7947960800494313
-    Current Test r^2: 0.8294051365860117
+    Current Train r^2: 0.7960969039149889
+    Current Test r^2: 0.8270575617147363
     Current Number of Features: 54
-    Current Train r^2: 0.789886103705197
-    Current Test r^2: 0.8338453819780103
+    Current Train r^2: 0.7919124696163059
+    Current Test r^2: 0.8424674925402128
     Current Number of Features: 55
-    Current Train r^2: 0.7893046762036174
-    Current Test r^2: 0.8382507577103676
+    Current Train r^2: 0.7906323474099471
+    Current Test r^2: 0.844213137957099
     Current Number of Features: 56
-    Current Train r^2: 0.788891926383212
-    Current Test r^2: 0.8418931100486838
+    Current Train r^2: 0.7927095639669268
+    Current Test r^2: 0.8313739917653264
     Current Number of Features: 57
-    Current Train r^2: 0.7891215417906627
-    Current Test r^2: 0.8358066128554443
+    Current Train r^2: 0.7901610612781133
+    Current Test r^2: 0.8464712337980987
     Current Number of Features: 58
-    Current Train r^2: 0.7888583790413453
-    Current Test r^2: 0.8428981155228964
+    Current Train r^2: 0.7900940403231337
+    Current Test r^2: 0.8498301453844627
     Current Number of Features: 59
-    Current Train r^2: 0.7893082544026231
-    Current Test r^2: 0.8400255483314069
+    Current Train r^2: 0.7985419859954476
+    Current Test r^2: 0.8175063128069696
 
 
 
@@ -804,12 +831,12 @@ plt.legend()
 
 
 
-    <matplotlib.legend.Legend at 0x1a1e4e2748>
+    <matplotlib.legend.Legend at 0x1a2d327c18>
 
 
 
 
-![png](index_files/index_27_1.png)
+![png](index_files/index_28_1.png)
 
 
 # Repeat this process using Mean Squarred Error (MSE) instead of the R^2 Value
@@ -820,17 +847,7 @@ Note: MSE should be minimized as opposed to R^2 which we were maximizing.
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 ```
 
-
-```python
-pwd
-```
-
-
-
-
-    '/Users/matthew.mitchell/Documents/Learn_CO/Skills1-1/Day6/Classwork/Feature_Selection/Housing_Kaggle'
-
-
+## Check out the docstring for how to use this function.
 
 
 ```python
@@ -884,10 +901,10 @@ plt.legend()
 
 
 
-    <matplotlib.legend.Legend at 0x105e5fd68>
+    <matplotlib.legend.Legend at 0x109be1e80>
 
 
 
 
-![png](index_files/index_33_1.png)
+![png](index_files/index_34_1.png)
 
